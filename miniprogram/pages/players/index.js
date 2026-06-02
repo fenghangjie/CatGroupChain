@@ -29,7 +29,7 @@ Page({
         data: { type: 'checkAdmin' }
       })
       if (res.result.success) {
-        this.setData({ isAdmin: res.result.isAdmin, isSuperAdmin: res.result.isSuperAdmin })
+        const r = res.result; console.log('checkAdmin result:', r); this.setData({ isAdmin: r.isAdmin, isSuperAdmin: r.isSuperAdmin })
         if (res.result.isSuperAdmin) this.loadAdmins()
       }
     } catch (e) { console.error(e) }
