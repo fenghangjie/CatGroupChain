@@ -36,7 +36,7 @@
     <view wx:if="!loading && report.length === 0" class="empty">暂无数据 🏸</view>
     
     <view class="rank-list" wx:if="report.length > 0">
-      <view class="rank-item" wx:for="{{report}}" wx:key="playerId" wx:for-index="i" bindtap="viewPlayer" data-playerid="{{item.playerId}}" data-name="{{item.nickname}}">
+      <view class="rank-item" wx:for="{{report}}" wx:key="playerId" wx:for-index="i">
         <view class="rank-num rank-{{i < 3 ? ['gold','silver','bronze'][i] : 'normal'}}">
           <text wx:if="{{i < 3}}">{{['🥇','🥈','🥉'][i]}}</text>
           <text wx:else>{{item.rank}}</text>
