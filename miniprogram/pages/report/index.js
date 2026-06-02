@@ -73,7 +73,8 @@ Page({
       if (res.result.success) {
         const activities = res.result.data
         const result = this.computeReport(activities, year, month)
-        this.setData({ ...result, loading: false })
+        const top10 = result.report.slice(0, 13)
+      this.setData({ ...result, report: top10, rankAll: result.report, rankExpanded: false, loading: false })
       } else {
         this.setData({ loading: false })
       }
@@ -134,10 +135,10 @@ Page({
     this.setData({ loading: true })
     try {
       const year = this.data.year
-      const report = []
+      const monthReports = []
+      const yearStatsMap = {}
       let totalActivities = 0
       let totalAttendance = 0
-      const allPlayerIds = new Set()
 
       for (let m = 1; m <= 12; m++) {
         const res = await wx.cloud.callFunction({
@@ -147,23 +148,41 @@ Page({
         if (res.result.success) {
           const acts = res.result.data
           const attendance = acts.reduce((s, a) => s + (a.signups || []).length, 0)
-          report.push({ month: m, monthName: m + '月', count: acts.length, attendance })
+          monthReports.push({ month: m, monthName: m + '月', count: acts.length, attendance })
           totalActivities += acts.length
           totalAttendance += attendance
           for (const act of acts) {
             for (const s of (act.signups || [])) {
-              if (s.playerId) allPlayerIds.add(s.playerId)
+              if (!s.playerId) continue
+              if (!yearStatsMap[s.playerId]) yearStatsMap[s.playerId] = { count: 0, nickname: s.nickname || '' }
+              yearStatsMap[s.playerId].count++
+              if (s.nickname) yearStatsMap[s.playerId].nickname = s.nickname
             }
           }
         }
       }
+
+      const yearReportList = Object.entries(yearStatsMap).map(([playerId, info]) => ({
+        playerId,
+        nickname: info.nickname || '未知',
+        count: info.count
+      }))
+      yearReportList.sort((a, b) => b.count - a.count)
+      yearReportList.forEach((item, i) => { item.rank = i + 1 })
+      // 年度排行榜只保留前30名，默认展开前10名
+      const yearTop10 = yearReportList.slice(0, 13)
+      const yearTop30 = yearReportList.slice(0, 30)
+      const yearMaxCount = yearReportList.length > 0 ? yearReportList[0].count : 0
+
       this.setData({
-        yearReport: report,
-        report: [],
+        yearReport: monthReports,
+        report: yearTop10,
+        yearRankAll: yearTop30,
+        yearRankExpanded: false,
         totalActivities,
-        totalPlayers: allPlayerIds.size,
+        totalPlayers: yearReportList.length,
         totalAttendance,
-        maxCount: 0,
+        maxCount: yearMaxCount,
         loading: false
       })
     } catch (e) {
@@ -172,11 +191,28 @@ Page({
     }
   },
 
+  toggleRank() {
+    const expanded = !this.data.rankExpanded
+    this.setData({
+      report: expanded ? this.data.rankAll : this.data.rankAll.slice(0, 13),
+      rankExpanded: expanded
+    })
+  },
+
+  toggleYearRank() {
+    const expanded = !this.data.yearRankExpanded
+    this.setData({
+      report: expanded ? this.data.yearRankAll : this.data.yearRankAll.slice(0, 13),
+      yearRankExpanded: expanded
+    })
+  },
+
   viewPlayer(e) {
     const name = e.currentTarget.dataset.name
     const player = this.data.report.find(s => s.playerId === e.currentTarget.dataset.playerid)
     if (player) {
-      wx.showModal({ title: name, content: '本月出勤：' + player.count + ' 次', showCancel: false })
+      const prefix = this.data.viewMode === 'year' ? '年度出勤' : '本月出勤'
+      wx.showModal({ title: name, content: prefix + '：' + player.count + ' 次', showCancel: false })
     } else {
       wx.showModal({ title: name, content: '暂无数据', showCancel: false })
     }

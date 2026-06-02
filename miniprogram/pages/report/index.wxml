@@ -48,6 +48,9 @@
         <view class="rank-count">{{item.count}} 次</view>
       </view>
     </view>
+    <view class="toggle-rank" wx:if="{{rankAll && rankAll.length > 10}}" bindtap="toggleRank">
+      <text>{{rankExpanded ? '收起' : '展开更多'}} ▼</text>
+    </view>
   </view>
 
   <view class="card" wx:if="{{viewMode==='year' && yearReport.length>0}}">
