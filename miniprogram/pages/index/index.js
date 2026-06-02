@@ -72,10 +72,8 @@ Page({
 
         // 去掉时间段
         content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
+        content = content.replace(/(\D)\s+(\d+)$/g, '$1$2').trim()  // 安妮 2 → 安妮2
         content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
-
-        // 去掉末尾单独的数字（如 超人不会飞 1、安妮 2）
-        content = content.replace(/\s+\d+$/g, '').trim()
 
         if (!content || content === '#') continue
         if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场|禁止|谢绝|未按要求|[闭关]/.test(content)) continue
@@ -84,8 +82,8 @@ Page({
         const plusMatch = content.match(/^(.+?)\s*\+(\d+)\s*$/)
         if (plusMatch) {
           const base = plusMatch[1].trim()
-          names.push(base)
           const count = parseInt(plusMatch[2])
+          // 不添加本人（已在前面出现），只展开 +1 +2
           for (let j = 1; j <= count; j++) {
             names.push(base + j)
           }

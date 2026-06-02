@@ -109,8 +109,8 @@ function parseSignups(text) {
     if (isFirstLine) { isFirstLine = false; continue }  // 第一行序号跳过
 
     content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
+        content = content.replace(/(\D)\s+(\d+)$/g, '$1$2').trim()  // 安妮 2 → 安妮2
     content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
-    content = content.replace(/\s+\d+$/g, '').trim()
 
     if (!content || content === '#') continue
     if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场|禁止|谢绝|未按要求|[闭关]/.test(content)) continue
@@ -119,9 +119,8 @@ function parseSignups(text) {
     if (plusMatch) {
       const base = plusMatch[1].trim()
       const count = parseInt(plusMatch[2])
-      for (let j = 0; j <= count; j++) {
-        const name = j === 0 ? base : base + j
-        if (name) results.push({ wxId: '', nickname: name })
+      for (let j = 1; j <= count; j++) {
+        results.push({ wxId: '', nickname: base + j })
       }
       continue
     }
