@@ -35,35 +35,6 @@ Page({
     this.setData({ loading: false })
   },
 
-  clearAllData() {
-    const that = this
-    wx.showModal({
-      title: '⚠️ 确认清除',
-      content: '确定要清除所有接龙记录和成员数据吗？此操作不可恢复！',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '清除中...' })
-          try {
-            const r = await wx.cloud.callFunction({
-              name: 'badminton',
-              data: {
-    collapsed: true, type: 'clearAll' }
-            })
-            wx.hideLoading()
-            if (r.result.success) {
-              that.showToast('✅ ' + r.result.message)
-              that.loadPlayers()
-            } else {
-              that.showToast('清除失败')
-            }
-          } catch (e) {
-            wx.hideLoading()
-            that.showToast('清除失败')
-          }
-        }
-      }
-    })
-  },
 
   toggleCollapse() {
     this.setData({ collapsed: !this.data.collapsed })

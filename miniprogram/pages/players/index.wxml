@@ -20,9 +20,5 @@
     <view wx:if="{{players.length > 10}}" class="collapse-toggle" bindtap="toggleCollapse">{{collapsed ? '展开全部 ▼' : '收起 ▲'}}</view>
   </view>
 
-  <view class="footer-actions">
-    <button class="btn btn-danger" bindtap="clearAllData">🗑️ 清除所有数据（接龙+成员）</button>
-  </view>
-
   <view class="toast {{showToast ? 'toast-show' : ''}}">{{toastMsg}}</view>
 </view>
