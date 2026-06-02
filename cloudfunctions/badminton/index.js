@@ -13,6 +13,8 @@ exports.main = async (event, context) => {
       return await getRecords(data)
     case 'deleteRecord':
       return await deleteRecord(data)
+    case 'clearAll':
+      return await clearAll()
     case 'getActivities':
       return await getActivities(data)
     case 'getMonthlyReport':
@@ -103,20 +105,15 @@ function parseSignups(text) {
     let content = numbered[1].trim()
     if (!content) continue
 
-    // 第一行带序号的是场地/截止信息，跳过
     if (results.length === 0 && /[场截止]/.test(content)) continue
 
-    // 去掉时间段
     content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
     content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
-
-    // 去掉末尾单独的数字（如 超人不会飞 1、安妮 2）
     content = content.replace(/\s+\d+$/g, '').trim()
 
     if (!content || content === '#') continue
     if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场/.test(content)) continue
 
-    // 展开 +数字（如 苏苏 +1 → 苏苏、苏苏1、苏苏2）
     const plusMatch = content.match(/^(.+?)\s*\+(\d+)\s*$/)
     if (plusMatch) {
       const base = plusMatch[1].trim()
@@ -146,6 +143,24 @@ function parseSignups(text) {
   }
 
   return results
+}
+
+async function clearAll() {
+  try {
+    // 删除所有 activities
+    const activities = await db.collection('activities').get()
+    const deleteActs = activities.data.map(a => db.collection('activities').doc(a._id).remove())
+    await Promise.all(deleteActs)
+
+    // 删除所有 players
+    const players = await db.collection('players').get()
+    const deletePls = players.data.map(p => db.collection('players').doc(p._id).remove())
+    await Promise.all(deletePls)
+
+    return { success: true, message: `已清除 ${activities.data.length} 条接龙记录和 ${players.data.length} 个成员` }
+  } catch (e) {
+    return { success: false, errMsg: e.message }
+  }
 }
 
 async function getRecords({ page = 0, pageSize = 50 } = {}) {

@@ -22,7 +22,6 @@
   font-size: 24rpx;
   color: #999;
   margin-bottom: 24rpx;
-  line-height: 1.5;
 }
 
 .loading, .empty {
@@ -81,3 +80,36 @@
   color: #bbb;
   margin-top: 2rpx;
 }
+
+.footer-actions {
+  margin-top: 40rpx;
+  text-align: center;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #e64340;
+  border: 2rpx solid #e64340;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+}
+
+.toast {
+  position: fixed;
+  bottom: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  padding: 16rpx 40rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.toast-show { opacity: 1; }

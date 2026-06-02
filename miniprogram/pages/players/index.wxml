@@ -1,10 +1,10 @@
 <view class="container">
   <view class="card">
     <view class="card-title">👥 打球成员（共 {{players.length}} 人）</view>
-    <view class="subtitle">成员从每次接龙录入中自动累积，微信号是唯一标识</view>
+    <view class="subtitle">成员从每次接龙录入中自动累积</view>
 
     <view wx:if="{{loading}}" class="loading">加载中...</view>
-    <view wx:if="!loading && players.length === 0" class="empty">暂无成员，先去录入接龙吧 🏸</view>
+    <view wx:if="!loading && players.length === 0" class="empty">暂无成员，去「接龙」页录入吧 🏸</view>
     
     <view class="player-list">
       <view class="player-item" wx:for="{{players}}" wx:key="_id">
@@ -12,11 +12,15 @@
         <view class="player-info">
           <view class="player-nickname">{{item.nickname || '未知'}}</view>
           <view class="player-wxid" wx:if="{{item.wxId}}">微信号：{{item.wxId}}</view>
-          <view class="player-aliases" wx:if="{{item.aliasesText}}">
-            曾用名：{{item.aliasesText}}
-          </view>
+          <view class="player-aliases" wx:if="{{item.aliasesText}}">曾用名：{{item.aliasesText}}</view>
         </view>
       </view>
     </view>
   </view>
+
+  <view class="footer-actions">
+    <button class="btn btn-danger" bindtap="clearAllData">🗑️ 清除所有数据（接龙+成员）</button>
+  </view>
+
+  <view class="toast {{showToast ? 'toast-show' : ''}}">{{toastMsg}}</view>
 </view>
