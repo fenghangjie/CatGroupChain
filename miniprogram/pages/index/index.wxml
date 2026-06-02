@@ -44,8 +44,9 @@
         <view class="record-signups">{{item.previewText}}</view>
         <view class="record-delete" wx:if="{{isAdmin}}" bindtap="deleteRecord" data-id="{{item._id}}" data-date="{{item.date}}">删除</view>
       </view>
+    </view>
   </view>
-  <view class="card" wx:if="{{!isAdmin && records.length === 0}}">
+  <view wx:if="{{!isAdmin && records.length === 0}}">
     <view class="empty-tip">⏳ 等待管理员录入接龙数据...</view>
   </view>
 
