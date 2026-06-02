@@ -64,9 +64,11 @@ exports.main = async (event, context) => {
       }
     case 'getPlayers':
       return await getPlayers()
-    case 'addAdmin':
+    case 'genInviteCode':
       await checkSuperAdmin(event)
-      return await addAdmin(data)
+      return await genInviteCode()
+    case 'redeemInviteCode':
+      return await redeemInviteCode(event, data)
     case 'removeAdmin':
       await checkSuperAdmin(event)
       return await removeAdmin(data)
@@ -268,16 +270,53 @@ async function getPlayers() {
   }
 }
 
-async function addAdmin({ openid, name }) {
+async function genInviteCode() {
   try {
-    if (!openid) return { success: false, errMsg: '缺少openid' }
-    if (openid === SUPER_ADMIN) return { success: false, errMsg: '超级管理员无需添加' }
-    const exist = await db.collection('admins').where({ openid }).get()
-    if (exist.data.length > 0) return { success: false, errMsg: '该用户已是管理员' }
-    await db.collection('admins').add({
-      data: { openid, name: name || '', addedBy: SUPER_ADMIN, createdAt: db.serverDate() }
+    // 生成6位随机码
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let code = ''
+    for (let i = 0; i < 6; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)]
+    }
+    // 存储到invite_codes集合，5分钟后过期
+    await db.collection('invite_codes').add({
+      data: { code, used: false, createdAt: db.serverDate() }
     })
-    return { success: true, message: '添加成功' }
+    return { success: true, code }
+  } catch (e) {
+    return { success: false, errMsg: e.message }
+  }
+}
+
+async function redeemInviteCode(event, { code }) {
+  try {
+    if (!code) return { success: false, errMsg: '请输入邀请码' }
+    const wxContext = cloud.getWXContext()
+    const openid = wxContext.OPENID
+
+    // 查找有效邀请码
+    const res = await db.collection('invite_codes').where({ code, used: false }).get()
+    if (res.data.length === 0) return { success: false, errMsg: '邀请码无效或已过期' }
+
+    const inviteCode = res.data[0]
+
+    // 检查是否已是管理员
+    if (openid === SUPER_ADMIN) {
+      return { success: false, errMsg: '你已是超级管理员' }
+    }
+    const adminExist = await db.collection('admins').where({ openid }).get()
+    if (adminExist.data.length > 0) {
+      return { success: false, errMsg: '你已是管理员' }
+    }
+
+    // 标记邀请码已使用
+    await db.collection('invite_codes').doc(inviteCode._id).update({ data: { used: true } })
+
+    // 添加为管理员
+    await db.collection('admins').add({
+      data: { openid, name: '', addedBy: 'invite:' + code, createdAt: db.serverDate() }
+    })
+    return { success: true, message: '🎉 你已成为管理员！' }
   } catch (e) {
     return { success: false, errMsg: e.message }
   }

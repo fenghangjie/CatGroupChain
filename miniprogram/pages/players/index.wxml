@@ -1,11 +1,44 @@
 <view class="container">
+  <!-- 邀请码兑换（非管理员可见） -->
+  <view class="card" wx:if="{{!isAdmin && !isSuperAdmin}}">
+    <view class="card-title">🔑 成为管理员</view>
+    <view class="subtitle">输入超级管理员给你的邀请码</view>
+    <view class="form-row-inline">
+      <input class="form-input" placeholder="输入6位邀请码" value="{{inviteCode}}" bindinput="onInviteCodeInput" maxlength="6" />
+      <button class="btn btn-small btn-primary" bindtap="redeemInviteCode">兑换</button>
+    </view>
+  </view>
+
+  <!-- 生成邀请码（仅超级管理员可见） -->
+  <view class="card" wx:if="{{isSuperAdmin}}">
+    <view class="card-title">🔑 管理员管理</view>
+    <view class="subtitle">生成邀请码发给群友，对方兑换后即可成为管理员</view>
+
+    <button class="btn btn-primary btn-gen" bindtap="genInviteCode">🔄 生成邀请码</button>
+    <view wx:if="{{generatedCode}}" class="invite-code-box">
+      <view class="invite-code-label">邀请码（5分钟内有效）：</view>
+      <view class="invite-code">{{generatedCode}}</view>
+      <view class="invite-code-hint">将此邀请码发给需要成为管理员的人</view>
+    </view>
+
+    <view class="admin-section-title">当前管理员</view>
+    <view class="admin-list" wx:if="{{admins.length > 0}}">
+      <view class="admin-item" wx:for="{{admins}}" wx:key="openid">
+        <text class="admin-name">{{item.name || item.openid}}</text>
+        <text class="admin-openid">{{item.openid}}</text>
+        <button class="btn-remove" bindtap="removeAdmin" data-openid="{{item.openid}}">移除</button>
+      </view>
+    </view>
+    <view wx:if="{{admins.length === 0}}" class="empty">暂无其他管理员</view>
+  </view>
+
   <!-- 打球成员 -->
   <view class="card">
     <view class="card-title">👥 打球成员（共 {{players.length}} 人）</view>
     <view class="subtitle">成员从每次接龙录入中自动累积</view>
 
     <view wx:if="{{loading}}" class="loading">加载中...</view>
-    <view wx:if="!loading && players.length === 0" class="empty">暂无成员，去「接龙」页录入吧 🏸</view>
+    <view wx:if="!loading && players.length === 0" class="empty">暂无成员</view>
     
     <view class="player-list {{collapsed ? 'player-list-collapsed' : ''}}">
       <view class="player-item" wx:for="{{players}}" wx:key="_id">
@@ -19,27 +52,6 @@
     </view>
 
     <view wx:if="{{players.length > 10}}" class="collapse-toggle" bindtap="toggleCollapse">{{collapsed ? '展开全部 ▼' : '收起 ▲'}}</view>
-  </view>
-
-  <!-- 管理员管理（仅超级管理员可见） -->
-  <view class="card" wx:if="{{isSuperAdmin}}">
-    <view class="card-title">🔑 管理员管理</view>
-    <view class="subtitle">添加或移除管理员，管理员可以录入接龙</view>
-
-    <view class="form-row">
-      <input class="form-input" placeholder="微信OPENID" value="{{adminInputOpenid}}" bindinput="onAdminOpenidInput" />
-      <input class="form-input" placeholder="备注名称" value="{{adminInputName}}" bindinput="onAdminNameInput" />
-      <button class="btn btn-small btn-primary" bindtap="addAdmin">添加</button>
-    </view>
-
-    <view class="admin-list" wx:if="{{admins.length > 0}}">
-      <view class="admin-item" wx:for="{{admins}}" wx:key="openid">
-        <text class="admin-name">{{item.name || item.openid}}</text>
-        <text class="admin-openid">{{item.openid}}</text>
-        <button class="btn-remove" bindtap="removeAdmin" data-openid="{{item.openid}}">移除</button>
-      </view>
-    </view>
-    <view wx:if="{{admins.length === 0}}" class="empty">暂未添加其他管理员</view>
   </view>
 
   <view class="toast {{showToast ? 'toast-show' : ''}}">{{toastMsg}}</view>

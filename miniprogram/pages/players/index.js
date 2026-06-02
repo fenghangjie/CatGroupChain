@@ -8,8 +8,8 @@ Page({
     isSuperAdmin: false,
     isAdmin: false,
     admins: [],
-    adminInputOpenid: '',
-    adminInputName: ''
+    generatedCode: '',
+    inviteCode: ''
   },
 
   onLoad() {
@@ -29,8 +29,10 @@ Page({
         data: { type: 'checkAdmin' }
       })
       if (res.result.success) {
-        const r = res.result; console.log('checkAdmin result:', r); this.setData({ isAdmin: r.isAdmin, isSuperAdmin: r.isSuperAdmin })
-        if (res.result.isSuperAdmin) this.loadAdmins()
+        const r = res.result
+        console.log('checkAdmin result:', r)
+        this.setData({ isAdmin: r.isAdmin, isSuperAdmin: r.isSuperAdmin })
+        if (r.isSuperAdmin) this.loadAdmins()
       }
     } catch (e) { console.error(e) }
   },
@@ -58,6 +60,48 @@ Page({
     this.setData({ collapsed: !this.data.collapsed })
   },
 
+  // Invite code: super admin generates
+  async genInviteCode() {
+    wx.showLoading({ title: '生成中...' })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'badminton',
+        data: { type: 'genInviteCode' }
+      })
+      wx.hideLoading()
+      if (res.result.success) {
+        this.setData({ generatedCode: res.result.code })
+      } else {
+        this.showToast(res.result.errMsg || '生成失败')
+      }
+    } catch (e) { wx.hideLoading(); this.showToast('生成失败') }
+  },
+
+  // Invite code: normal user redeems
+  onInviteCodeInput(e) {
+    this.setData({ inviteCode: e.detail.value.toUpperCase() })
+  },
+
+  async redeemInviteCode() {
+    const code = this.data.inviteCode.trim()
+    if (code.length < 4) { this.showToast('请输入有效的邀请码'); return }
+    wx.showLoading({ title: '兑换中...' })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'badminton',
+        data: { type: 'redeemInviteCode', data: { code } }
+      })
+      wx.hideLoading()
+      if (res.result.success) {
+        this.showToast(res.result.message || '✅ 兑换成功！')
+        this.setData({ inviteCode: '', isAdmin: true })
+        this.checkAdmin()
+      } else {
+        this.showToast(res.result.errMsg || '兑换失败')
+      }
+    } catch (e) { wx.hideLoading(); this.showToast('兑换失败') }
+  },
+
   // Admin management
   async loadAdmins() {
     try {
@@ -69,35 +113,6 @@ Page({
         this.setData({ admins: res.result.data || [] })
       }
     } catch (e) { console.error(e) }
-  },
-
-  onAdminOpenidInput(e) {
-    this.setData({ adminInputOpenid: e.detail.value })
-  },
-
-  onAdminNameInput(e) {
-    this.setData({ adminInputName: e.detail.value })
-  },
-
-  async addAdmin() {
-    const openid = this.data.adminInputOpenid.trim()
-    const name = this.data.adminInputName.trim()
-    if (!openid) { this.showToast('请输入微信号openid'); return }
-    wx.showLoading({ title: '添加中...' })
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'badminton',
-        data: { type: 'addAdmin', data: { openid, name } }
-      })
-      wx.hideLoading()
-      if (res.result.success) {
-        this.showToast('✅ 添加成功')
-        this.setData({ adminInputOpenid: '', adminInputName: '' })
-        this.loadAdmins()
-      } else {
-        this.showToast(res.result.errMsg || '添加失败')
-      }
-    } catch (e) { wx.hideLoading(); this.showToast('添加失败') }
   },
 
   async removeAdmin(e) {
