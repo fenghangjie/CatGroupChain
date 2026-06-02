@@ -187,6 +187,11 @@ function parseSignups(text) {
     // 过滤非人名行
     if (/接龙|统计|记录|截止|报名|替补|候补|总数|截止|请接龙/.test(content)) continue
 
+    // 去掉时间段，如 8-10、8～10、7:00～10:00、20-22点、8点 等
+    content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
+    content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
+    content = content.replace(/\s*\d{1,2}\s*[点时]\s*$/g, '').trim()
+
     // 尝试提取微信号
     let wxId = ''
     let nickname = content
