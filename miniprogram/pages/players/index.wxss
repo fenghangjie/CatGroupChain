@@ -1,0 +1,83 @@
+.container {
+  padding: 20rpx 30rpx;
+  padding-bottom: 120rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 24rpx;
+  line-height: 1.5;
+}
+
+.loading, .empty {
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+  padding: 40rpx 0;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 16rpx;
+  border: 2rpx solid #f0f0f0;
+  border-radius: 12rpx;
+}
+
+.player-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1aad19, #4cd964);
+  color: #fff;
+  font-size: 32rpx;
+  text-align: center;
+  line-height: 72rpx;
+  flex-shrink: 0;
+}
+
+.player-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-nickname {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.player-wxid {
+  font-size: 24rpx;
+  color: #888;
+  margin-top: 4rpx;
+}
+
+.player-aliases {
+  font-size: 22rpx;
+  color: #bbb;
+  margin-top: 2rpx;
+}

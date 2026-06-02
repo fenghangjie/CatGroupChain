@@ -1,0 +1,130 @@
+.container {
+  padding: 20rpx 30rpx;
+  padding-bottom: 120rpx;
+}
+
+.summary-card {
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.summary-item {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #1aad19;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6rpx;
+}
+
+.card-subtitle {
+  font-size: 24rpx;
+  color: #aaa;
+  margin-bottom: 20rpx;
+}
+
+.loading, .empty {
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+  padding: 40rpx 0;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 0;
+}
+
+.rank-num {
+  width: 56rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.rank-gold { color: #f5a623; }
+.rank-silver { color: #7a8a9e; }
+.rank-bronze { color: #cd7f32; }
+.rank-normal { color: #999; }
+
+.rank-info {
+  width: 130rpx;
+  flex-shrink: 0;
+}
+
+.rank-name {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.rank-aliases {
+  font-size: 20rpx;
+  color: #bbb;
+  margin-top: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-bar-wrap {
+  flex: 1;
+  height: 28rpx;
+  background: #f0f0f0;
+  border-radius: 14rpx;
+  overflow: hidden;
+}
+
+.rank-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #b8e6b8, #1aad19);
+  border-radius: 14rpx;
+  transition: width 0.3s;
+}
+
+.rank-count {
+  width: 80rpx;
+  text-align: right;
+  font-size: 26rpx;
+  color: #888;
+  flex-shrink: 0;
+}

@@ -1,1 +1,5 @@
-猫群接龙小程序
+.DS_Store
+node_modules/
+cloudfunctions/*/node_modules/
+*.log
+project.private.config.json

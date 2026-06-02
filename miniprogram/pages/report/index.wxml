@@ -1,0 +1,75 @@
+<view class="container">
+  <!-- 月份选择 -->
+  <view class="month-picker">
+    <view class="month-nav" bindtap="prevMonth">◀</view>
+    <view class="month-title">{{year}}年{{month}}月</view>
+    <view class="month-nav" bindtap="nextMonth">▶</view>
+  </view>
+
+  <!-- 统计概览 -->
+  <view class="summary-card">
+    <view class="summary-item">
+      <text class="summary-num">{{totalActivities}}</text>
+      <text class="summary-label">本月活动</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-num">{{totalPlayers}}</text>
+      <text class="summary-label">参与人数</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-num">{{totalAttendance}}</text>
+      <text class="summary-label">总人次</text>
+    </view>
+  </view>
+
+  <!-- 考勤矩阵（打卡表） -->
+  <view class="card" wx:if="dates.length > 0 && report.length > 0">
+    <view class="card-title">📋 考勤表</view>
+    <scroll-view class="matrix-scroll" scroll-x>
+      <view class="matrix">
+        <!-- 表头 -->
+        <view class="matrix-row matrix-header">
+          <view class="matrix-cell matrix-name">姓名</view>
+          <view class="matrix-cell matrix-day" wx:for="{{dates}}" wx:key="*this">
+            {{item.slice(8,10)}}日
+          </view>
+          <view class="matrix-cell matrix-total">次数</view>
+        </view>
+        <!-- 数据行 -->
+        <view class="matrix-row" wx:for="{{report}}" wx:key="playerId">
+          <view class="matrix-cell matrix-name">{{item.nickname}}</view>
+          <view class="matrix-cell matrix-day" wx:for="{{item.attendance}}" wx:key="*this">
+            <text class="dot {{item ? 'dot-yes' : 'dot-no'}}">{{item ? '●' : '○'}}</text>
+          </view>
+          <view class="matrix-cell matrix-total">{{item.count}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 排行榜 -->
+  <view class="card" wx:if="report.length > 0">
+    <view class="card-title">🏆 本月排名</view>
+    <view class="rank-list">
+      <view class="rank-item" wx:for="{{report}}" wx:key="playerId" wx:for-index="i">
+        <view class="rank-num rank-{{i < 3 ? ['gold','silver','bronze'][i] : 'normal'}}">
+          <text wx:if="{{i < 3}}">{{['🥇','🥈','🥉'][i]}}</text>
+          <text wx:else>{{item.rank}}</text>
+        </view>
+        <view class="rank-name">{{item.nickname}}</view>
+        <view class="rank-bar-wrap">
+          <view class="rank-bar" style="width: {{maxCount > 0 ? (item.count / maxCount * 100) : 0}}%"></view>
+        </view>
+        <view class="rank-count">{{item.count}} 次</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="!loading && report.length === 0" class="empty">
+    暂无考勤数据，先去「活动」页录入接龙吧 🏸
+  </view>
+
+  <!-- 加载 -->
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+</view>

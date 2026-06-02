@@ -1,0 +1,44 @@
+<view class="container">
+  <!-- 统计概要 -->
+  <view class="summary-card">
+    <view class="summary-item">
+      <text class="summary-num">{{totalRecords}}</text>
+      <text class="summary-label">总接龙场次</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-num">{{totalPlayers}}</text>
+      <text class="summary-label">打球人数</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-num">{{totalAttendance}}</text>
+      <text class="summary-label">总参与人次</text>
+    </view>
+  </view>
+
+  <!-- 排行榜 -->
+  <view class="card">
+    <view class="card-title">🏆 参与排行榜</view>
+    <view class="card-subtitle">同一个人换接龙名也会统计到一起哦</view>
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="!loading && stats.length === 0" class="empty">暂无统计数据，先去录入接龙吧 🏸</view>
+    
+    <view class="rank-list" wx:if="stats.length > 0">
+      <view class="rank-item" wx:for="{{stats}}" wx:key="playerId" wx:for-index="i">
+        <view class="rank-num rank-{{i < 3 ? ['gold','silver','bronze'][i] : 'normal'}}">
+          <text wx:if="{{i < 3}}">{{['🥇','🥈','🥉'][i]}}</text>
+          <text wx:else>{{item.rank}}</text>
+        </view>
+        <view class="rank-info">
+          <view class="rank-name">{{item.name}}</view>
+          <view class="rank-aliases" wx:if="{{item.aliases && item.aliases.length > 1}}">
+            曾用名：{{item.aliases.filter((n,idx) => idx > 0).join('、')}}
+          </view>
+        </view>
+        <view class="rank-bar-wrap">
+          <view class="rank-bar" style="width: {{maxCount > 0 ? (item.count / maxCount * 100) : 0}}%"></view>
+        </view>
+        <view class="rank-count">{{item.count}} 次</view>
+      </view>
+    </view>
+  </view>
+</view>

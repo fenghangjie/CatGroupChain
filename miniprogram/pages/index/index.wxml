@@ -1,0 +1,69 @@
+<view class="container">
+  <!-- 创建活动 -->
+  <view class="card">
+    <view class="card-title">📢 发布活动</view>
+    <view class="form-row">
+      <text class="form-label">日期</text>
+      <picker mode="date" value="{{newDate}}" bindchange="onDateChange">
+        <view class="picker">{{newDate || '点击选择日期'}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">标题</text>
+      <input class="form-input" placeholder="如：周五羽毛球" value="{{newTitle}}" bindinput="onTitleInput" />
+    </view>
+    <button class="btn btn-primary" bindtap="createActivity" loading="{{creating}}">📢 发布活动</button>
+  </view>
+
+  <!-- 活动列表 -->
+  <view class="card">
+    <view class="card-title">📋 活动列表</view>
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="!loading && activities.length === 0" class="empty">暂无活动，发布第一个吧 🏸</view>
+
+    <view class="activity-list" wx:if="activities.length > 0">
+      <view class="activity-item" wx:for="{{activities}}" wx:key="_id">
+        <view class="act-header">
+          <view class="act-date">{{item.date}}</view>
+          <view class="act-title">{{item.title}}</view>
+          <view class="act-signup-count">{{item.signups ? item.signups.length : 0}}人</view>
+        </view>
+
+        <!-- 已参与人员 -->
+        <view class="act-signups" wx:if="{{item.signups && item.signups.length > 0}}">
+          <view class="signup-tag" wx:for="{{item.signups}}" wx:key="playerId">
+            {{item.nickname || item.wxId || '?'}}
+          </view>
+        </view>
+
+        <!-- 录入接龙按钮 -->
+        <view class="act-actions">
+          <button class="btn btn-small btn-primary" bindtap="showSignupInput" data-activity="{{item}}">📝 录入接龙</button>
+          <button class="btn btn-small btn-danger" bindtap="deleteActivity" data-id="{{item._id}}" data-date="{{item.date}}">删除</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 录入接龙弹窗 -->
+  <view class="modal-overlay {{showSignupModal ? 'modal-show' : ''}}" bindtap="hideSignupInput" wx:if="{{showSignupModal}}">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">📝 录入接龙 - {{signupActivity.date}}</view>
+      <textarea
+        class="signup-textarea"
+        placeholder="粘贴群里的接龙内容，支持格式：&#10;&#10;1. 张三(zhangsan)&#10;2. 李四(lisi123)&#10;3. 王五(wangwu)&#10;&#10;或只有昵称：&#10;1. 张三&#10;2. 李四"
+        value="{{signupText}}"
+        bindinput="onSignupInput"
+        maxlength="3000"
+        auto-height
+      />
+      <view class="modal-actions">
+        <button class="btn btn-primary" bindtap="submitSignups" loading="{{submitting}}">✅ 保存</button>
+        <button class="btn btn-outline" bindtap="hideSignupInput">取消</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Toast -->
+  <view class="toast {{showToast ? 'toast-show' : ''}}">{{toastMsg}}</view>
+</view>
