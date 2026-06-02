@@ -42,29 +42,37 @@
   background: #fafafa;
 }
 
-.form-input {
-  flex: 1;
-  height: 72rpx;
-  padding: 0 20rpx;
+.input-area {
+  width: 100%;
+  min-height: 240rpx;
+  padding: 20rpx;
   border: 2rpx solid #e5e5e5;
   border-radius: 12rpx;
   font-size: 28rpx;
+  line-height: 1.6;
+  color: #333;
+  box-sizing: border-box;
   background: #fafafa;
 }
 
-.form-input:focus {
+.input-area:focus {
   border-color: #1aad19;
   background: #fff;
 }
 
+.btn-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
 .btn {
-  width: 100%;
+  flex: 1;
   height: 80rpx;
   line-height: 80rpx;
   border-radius: 12rpx;
   font-size: 30rpx;
   text-align: center;
-  margin-top: 16rpx;
 }
 
 .btn-primary {
@@ -78,18 +86,29 @@
   border: 2rpx solid #ddd;
 }
 
-.btn-danger {
-  background: #fff;
-  color: #e64340;
-  border: 2rpx solid #e64340;
+.result-info {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 12rpx;
 }
 
-.btn-small {
-  flex: 1;
-  height: 64rpx;
-  line-height: 64rpx;
+.highlight {
+  color: #1aad19;
+  font-weight: 600;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.tag {
+  background: #e8f5e9;
+  color: #1aad19;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
   font-size: 26rpx;
-  margin: 0;
 }
 
 .loading, .empty {
@@ -99,113 +118,38 @@
   padding: 40rpx 0;
 }
 
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-}
-
-.activity-item {
-  border: 2rpx solid #f0f0f0;
-  border-radius: 12rpx;
-  padding: 20rpx;
-}
-
-.act-header {
+.record-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 12rpx;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
 }
 
-.act-date {
+.record-item:last-child { border-bottom: none; }
+
+.record-date {
   font-size: 28rpx;
   font-weight: 600;
   color: #1aad19;
+  width: 160rpx;
+  flex-shrink: 0;
 }
 
-.act-title {
+.record-signups {
   flex: 1;
-  font-size: 28rpx;
-  color: #333;
-}
-
-.act-signup-count {
   font-size: 24rpx;
   color: #888;
-  background: #f5f5f5;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin: 0 16rpx;
 }
 
-.act-signups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
-  margin-bottom: 12rpx;
-}
-
-.signup-tag {
-  font-size: 24rpx;
-  color: #1aad19;
-  background: #e8f5e9;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
-}
-
-.act-actions {
-  display: flex;
-  gap: 16rpx;
-}
-
-
-.modal-show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.modal-content {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 30rpx;
-  width: 85%;
-  max-height: 80%;
-  overflow-y: auto;
-}
-
-.modal-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 20rpx;
-}
-
-.signup-textarea {
-  width: 100%;
-  min-height: 240rpx;
-  padding: 20rpx;
-  border: 2rpx solid #e5e5e5;
-  border-radius: 12rpx;
+.record-delete {
   font-size: 26rpx;
-  line-height: 1.6;
-  background: #fafafa;
-  box-sizing: border-box;
-}
-
-.signup-textarea:focus {
-  border-color: #1aad19;
-  background: #fff;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 20rpx;
-}
-
-.modal-actions .btn {
-  flex: 1;
-  margin: 0;
+  color: #e64340;
+  padding: 8rpx 16rpx;
+  flex-shrink: 0;
 }
 
 .toast {
@@ -224,6 +168,4 @@
   z-index: 200;
 }
 
-.toast-show {
-  opacity: 1;
-}
+.toast-show { opacity: 1; }

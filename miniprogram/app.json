@@ -1,7 +1,6 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/signup/index",
     "pages/report/index",
     "pages/players/index"
   ],
@@ -22,7 +21,7 @@
         "pagePath": "pages/index/index",
         "iconPath": "images/tab/home.png",
         "selectedIconPath": "images/tab/home-active.png",
-        "text": "活动"
+        "text": "接龙"
       },
       {
         "pagePath": "pages/report/index",

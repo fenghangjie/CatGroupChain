@@ -1,10 +1,11 @@
 Page({
   data: {
-    newDate: '',
-    newTitle: '',
-    activities: [],
+    signupDate: '',
+    signupText: '',
+    parsedNames: [],
+    records: [],
     loading: false,
-    creating: false,
+    submitting: false,
     showToast: false,
     toastMsg: ''
   },
@@ -12,59 +13,111 @@ Page({
   onLoad() {
     const today = new Date()
     const ds = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
-    this.setData({ newDate: ds })
-    this.loadActivities()
+    this.setData({ signupDate: ds })
+    this.loadRecords()
   },
 
   onShow() {
-    this.loadActivities()
+    this.loadRecords()
   },
 
   onDateChange(e) {
-    this.setData({ newDate: e.detail.value })
+    this.setData({ signupDate: e.detail.value })
   },
 
-  onTitleInput(e) {
-    this.setData({ newTitle: e.detail.value })
+  onInput(e) {
+    const text = e.detail.value
+    this.setData({ signupText: text })
+    const names = this.parseNames(text)
+    this.setData({ parsedNames: names })
   },
 
-  async createActivity() {
-    const { newDate, newTitle } = this.data
-    if (!newDate) {
-      this.showToast('请选择日期')
-      return
+  clearInput() {
+    this.setData({ signupText: '', parsedNames: [] })
+  },
+
+  // 解析接龙文本（去序号、去时间段、提取微信号）
+  parseNames(text) {
+    const lines = text.split('\n').filter(l => l.trim())
+    const results = []
+
+    for (const line of lines) {
+      let content = line.trim().replace(/^\s*\d+[\.、\)\s]\s*/, '').trim()
+      if (!content) continue
+      if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙/.test(content)) continue
+
+      // 去掉时间段
+      content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
+      content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
+      content = content.replace(/\s*\d{1,2}\s*[点时]\s*$/g, '').trim()
+
+      // 提取微信号和昵称
+      let wxId = ''
+      let nickname = content
+
+      const match1 = content.match(/^(.+?)[（\(](\w+)[）\)]$/)
+      if (match1) { nickname = match1[1].trim(); wxId = match1[2].trim() }
+
+      const match2 = content.match(/^(.+?)\s+(\w+)$/)
+      if (match2 && !wxId) { nickname = match2[1].trim(); wxId = match2[2].trim() }
+
+      const match3 = content.match(/微信号[：:]\s*(\w+)/)
+      if (match3 && !wxId) { wxId = match3[1].trim(); nickname = content.replace(/微信号[：:]\s*\w+/, '').trim() }
+
+      const displayName = nickname || wxId || content
+      if (displayName && displayName.length <= 10) {
+        results.push(displayName)
+      }
     }
-    this.setData({ creating: true })
+
+    return results
+  },
+
+  async submit() {
+    const { signupDate, signupText } = this.data
+    if (!signupDate) { this.showToast('请选择日期'); return }
+    if (!signupText.trim()) { this.showToast('请粘贴接龙内容'); return }
+
+    this.setData({ submitting: true })
     try {
       const res = await wx.cloud.callFunction({
         name: 'badminton',
         data: {
-          type: 'createActivity',
-          data: { date: newDate, title: newTitle || `${newDate} 羽毛球` }
+          type: 'addSignupsByDate',
+          data: { date: signupDate, signupText }
         }
       })
+
       if (res.result.success) {
-        this.showToast('✅ 活动已发布')
-        this.setData({ newTitle: '' })
-        this.loadActivities()
+        this.showToast(`✅ 保存成功！${res.result.data.total}人参与`)
+        this.setData({ signupText: '', parsedNames: [] })
+        this.loadRecords()
       } else {
-        this.showToast(res.result.errMsg || '发布失败')
+        this.showToast(res.result.errMsg || '保存失败')
       }
     } catch (e) {
-      this.showToast('发布失败，请检查云函数')
+      this.showToast('保存失败，请检查云函数')
     }
-    this.setData({ creating: false })
+    this.setData({ submitting: false })
   },
 
-  async loadActivities() {
+  async loadRecords() {
     this.setData({ loading: true })
     try {
       const res = await wx.cloud.callFunction({
         name: 'badminton',
-        data: { type: 'getActivities' }
+        data: { type: 'getRecords' }
       })
       if (res.result.success) {
-        this.setData({ activities: res.result.data })
+        const records = (res.result.data || []).map(r => {
+          const names = (r.signups || []).map(s => s.nickname || s.wxId || '?')
+          const preview = names.slice(0, 5).join(' ')
+          return {
+            ...r,
+            previewText: names.length > 5 ? preview + ' …等' + names.length + '人' : preview
+          }
+        })
+        this.setData({ records })
       }
     } catch (e) {
       console.error(e)
@@ -72,34 +125,30 @@ Page({
     this.setData({ loading: false })
   },
 
-  goSignup(e) {
-    const act = e.currentTarget.dataset.activity
-    wx.navigateTo({
-      url: `/pages/signup/index?id=${act._id}&date=${act.date}&title=${encodeURIComponent(act.title)}`
-    })
-  },
-
-  deleteActivity(e) {
+  deleteRecord(e) {
     const { id, date } = e.currentTarget.dataset
-    const that = this
     wx.showModal({
       title: '确认删除',
-      content: `确定删除 ${date} 的活动吗？`,
+      content: `确定删除 ${date} 的记录吗？`,
       success: async (res) => {
         if (res.confirm) {
           try {
             await wx.cloud.callFunction({
               name: 'badminton',
-              data: { type: 'deleteActivity', data: { _id: id } }
+              data: { type: 'deleteRecord', data: { _id: id } }
             })
-            that.showToast('已删除')
-            that.loadActivities()
-          } catch (e) {
-            that.showToast('删除失败')
-          }
+            this.showToast('已删除')
+            this.loadRecords()
+          } catch (e) { this.showToast('删除失败') }
         }
       }
     })
+  },
+
+  viewRecord(e) {
+    const record = e.currentTarget.dataset.record
+    const names = (record.signups || []).map(s => s.nickname || s.wxId || '?').join('、')
+    wx.showModal({ title: record.date, content: names, showCancel: false })
   },
 
   showToast(msg) {
