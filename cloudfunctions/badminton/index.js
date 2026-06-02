@@ -2,13 +2,15 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
-const ADMIN_OPENIDS = [''] // 在这里填入管理员的微信OPENID
+// 管理员OPENID列表，留空则所有人可操作
+const ADMIN_OPENIDS = [] // 填入你的微信OPENID即可开启管理员限制
 
 async function checkAdmin(event) {
+  if (ADMIN_OPENIDS.length === 0) return // 未配置管理员，所有人可操作
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
   if (!openid) throw new Error('获取用户身份失败')
-  if (ADMIN_OPENIDS.length > 0 && !ADMIN_OPENIDS.includes(openid)) {
+  if (!ADMIN_OPENIDS.includes(openid)) {
     throw new Error('无操作权限，仅管理员可执行此操作')
   }
 }
