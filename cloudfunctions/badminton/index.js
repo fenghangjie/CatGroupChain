@@ -1,17 +1,28 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
+const _ = db.command
 
-// 管理员OPENID列表，留空则所有人可操作
-const ADMIN_OPENIDS = ['oN-VR44CJa2LZLS8BvlLdfpaagXM']
+// 超级管理员（硬编码）
+const SUPER_ADMIN = 'oN-VR44CJa2LZLS8BvlLdfpaagXM'
 
 async function checkAdmin(event) {
-  if (ADMIN_OPENIDS.length === 0) return // 未配置管理员，所有人可操作
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
   if (!openid) throw new Error('获取用户身份失败')
-  if (!ADMIN_OPENIDS.includes(openid)) {
+  if (openid === SUPER_ADMIN) return // 超级管理员通过
+  // 检查 admins 集合
+  const adminRes = await db.collection('admins').where({ openid }).get()
+  if (adminRes.data.length === 0) {
     throw new Error('无操作权限，仅管理员可执行此操作')
+  }
+}
+
+async function checkSuperAdmin(event) {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  if (openid !== SUPER_ADMIN) {
+    throw new Error('仅超级管理员可执行此操作')
   }
 }
 
@@ -38,13 +49,30 @@ exports.main = async (event, context) => {
       try {
         const wxContext = cloud.getWXContext()
         const openid = wxContext.OPENID
-        const isAdmin = ADMIN_OPENIDS.includes(openid)
-        return { success: true, isAdmin, openid }
+        let isAdmin = false
+        let isSuperAdmin = false
+        if (openid === SUPER_ADMIN) {
+          isAdmin = true
+          isSuperAdmin = true
+        } else {
+          const adminRes = await db.collection('admins').where({ openid }).get()
+          isAdmin = adminRes.data.length > 0
+        }
+        return { success: true, isAdmin, isSuperAdmin, openid }
       } catch (e) {
-        return { success: false, isAdmin: false, errMsg: e.message }
+        return { success: false, isAdmin: false, isSuperAdmin: false, errMsg: e.message }
       }
     case 'getPlayers':
       return await getPlayers()
+    case 'addAdmin':
+      await checkSuperAdmin(event)
+      return await addAdmin(data)
+    case 'removeAdmin':
+      await checkSuperAdmin(event)
+      return await removeAdmin(data)
+    case 'getAdmins':
+      await checkSuperAdmin(event)
+      return await getAdmins()
     default:
       return { success: false, errMsg: '未知操作类型' }
   }
@@ -234,6 +262,43 @@ async function getPlayers() {
       nickname: p.nickname || (p.aliases && p.aliases[0]) || '',
       aliases: p.aliases || []
     }))
+    return { success: true, data }
+  } catch (e) {
+    return { success: false, errMsg: e.message }
+  }
+}
+
+async function addAdmin({ openid, name }) {
+  try {
+    if (!openid) return { success: false, errMsg: '缺少openid' }
+    if (openid === SUPER_ADMIN) return { success: false, errMsg: '超级管理员无需添加' }
+    const exist = await db.collection('admins').where({ openid }).get()
+    if (exist.data.length > 0) return { success: false, errMsg: '该用户已是管理员' }
+    await db.collection('admins').add({
+      data: { openid, name: name || '', addedBy: SUPER_ADMIN, createdAt: db.serverDate() }
+    })
+    return { success: true, message: '添加成功' }
+  } catch (e) {
+    return { success: false, errMsg: e.message }
+  }
+}
+
+async function removeAdmin({ openid }) {
+  try {
+    if (openid === SUPER_ADMIN) return { success: false, errMsg: '不能移除超级管理员' }
+    const exist = await db.collection('admins').where({ openid }).get()
+    if (exist.data.length === 0) return { success: false, errMsg: '该用户不是管理员' }
+    await db.collection('admins').doc(exist.data[0]._id).remove()
+    return { success: true, message: '已移除' }
+  } catch (e) {
+    return { success: false, errMsg: e.message }
+  }
+}
+
+async function getAdmins() {
+  try {
+    const res = await db.collection('admins').orderBy('createdAt', 'asc').get()
+    const data = res.data.map(a => ({ openid: a.openid, name: a.name || '', createdAt: a.createdAt }))
     return { success: true, data }
   } catch (e) {
     return { success: false, errMsg: e.message }

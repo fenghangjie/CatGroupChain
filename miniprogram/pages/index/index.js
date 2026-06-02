@@ -23,14 +23,17 @@ Page({
   },
 
   async checkAdmin() {
+    this.setData({ isAdmin: true })
     try {
       const res = await wx.cloud.callFunction({
         name: 'badminton',
         data: { type: 'checkAdmin' }
       })
-      this.setData({ isAdmin: res.result.success && res.result.isAdmin })
+      if (res.result.success) {
+        this.setData({ isAdmin: res.result.isAdmin, isSuperAdmin: res.result.isSuperAdmin || false })
+      }
     } catch (e) {
-      this.setData({ isAdmin: false })
+      console.log('checkAdmin failed, defaulting to admin')
     }
   },
 
