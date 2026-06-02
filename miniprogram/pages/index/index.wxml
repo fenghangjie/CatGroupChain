@@ -4,7 +4,7 @@
     <view class="card-title">📝 粘贴接龙内容</view>
     <textarea
       class="input-area"
-      placeholder="从微信群复制接龙内容粘贴到这里&#10;&#10;例如：&#10;6月2日 周五羽毛球接龙&#10;1. 1号场 8-10&#10;2. 张三(zhangsan)&#10;3. 李四(lisi123)&#10;4. 王五&#10;&#10;自动识别日期、跳过场地行、去掉时间段"
+      placeholder="接龙内容"
       value="{{signupText}}"
       bindinput="onInput"
       maxlength="5000"
