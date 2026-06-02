@@ -61,7 +61,7 @@ Page({
           if (date) continue
         }
 
-        const numbered = line.match(/^\s*\d+[\.、\)\s]\s*(.+)/)
+        const numbered = line.match(/^\s*\d+[\.、\)]\s+(.+)/)
         if (!numbered) continue
         let content = numbered[1].trim()
         if (!content) continue
