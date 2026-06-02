@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
 // 管理员OPENID列表，留空则所有人可操作
-const ADMIN_OPENIDS = [] // 填入你的微信OPENID即可开启管理员限制
+const ADMIN_OPENIDS = ['oN-VR44CJa2LZLS8BvlLdfpaagXM']
 
 async function checkAdmin(event) {
   if (ADMIN_OPENIDS.length === 0) return // 未配置管理员，所有人可操作
