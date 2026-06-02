@@ -167,3 +167,11 @@
   align-items: center;
   justify-content: center;
 }
+
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+  padding: 60rpx 0;
+}

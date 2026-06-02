@@ -1,24 +1,46 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
-const _ = db.command
+
+const ADMIN_OPENIDS = [''] // 在这里填入管理员的微信OPENID
+
+async function checkAdmin(event) {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  if (!openid) throw new Error('获取用户身份失败')
+  if (ADMIN_OPENIDS.length > 0 && !ADMIN_OPENIDS.includes(openid)) {
+    throw new Error('无操作权限，仅管理员可执行此操作')
+  }
+}
 
 exports.main = async (event, context) => {
   const { type, data } = event
 
   switch (type) {
     case 'addSignupsByDate':
+      await checkAdmin(event)
       return await addSignupsByDate(data)
     case 'getRecords':
       return await getRecords(data)
     case 'deleteRecord':
+      await checkAdmin(event)
       return await deleteRecord(data)
     case 'clearAll':
+      await checkAdmin(event)
       return await clearAll()
     case 'getActivities':
       return await getActivities(data)
     case 'getMonthlyReport':
       return await getMonthlyReport(data)
+    case 'checkAdmin':
+      try {
+        const wxContext = cloud.getWXContext()
+        const openid = wxContext.OPENID
+        const isAdmin = ADMIN_OPENIDS.includes(openid)
+        return { success: true, isAdmin, openid }
+      } catch (e) {
+        return { success: false, isAdmin: false, errMsg: e.message }
+      }
     case 'getPlayers':
       return await getPlayers()
     default:

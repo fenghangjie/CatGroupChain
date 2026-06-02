@@ -1,6 +1,6 @@
 <view class="container">
   <!-- 录入接龙 -->
-  <view class="card">
+  <view class="card" wx:if="{{isAdmin}}">
     <view class="card-title">📝 粘贴接龙内容</view>
     <textarea
       class="input-area"
@@ -42,9 +42,11 @@
       <view class="record-item" wx:for="{{records}}" wx:key="_id" bindtap="viewRecord" data-record="{{item}}">
         <view class="record-date">{{item.date}}</view>
         <view class="record-signups">{{item.previewText}}</view>
-        <view class="record-delete" bindtap="deleteRecord" data-id="{{item._id}}" data-date="{{item.date}}">删除</view>
+        <view class="record-delete" wx:if="{{isAdmin}}" bindtap="deleteRecord" data-id="{{item._id}}" data-date="{{item.date}}">删除</view>
       </view>
     </view>
+    <view class="card" wx:if="{{!isAdmin && records.length === 0}}">
+    <view class="empty-tip">⏳ 等待管理员录入接龙数据...</view>
   </view>
 
   <view class="toast {{showToast ? 'toast-show' : ''}}">{{toastMsg}}</view>

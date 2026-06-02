@@ -1,5 +1,6 @@
 Page({
   data: {
+    isAdmin: false,
     signupDate: '',
     signupText: '',
     parsedDate: '',
@@ -12,11 +13,25 @@ Page({
   },
 
   onLoad() {
+    this.checkAdmin()
     this.loadRecords()
   },
 
   onShow() {
+    this.checkAdmin()
     this.loadRecords()
+  },
+
+  async checkAdmin() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'badminton',
+        data: { type: 'checkAdmin' }
+      })
+      this.setData({ isAdmin: res.result.success && res.result.isAdmin })
+    } catch (e) {
+      this.setData({ isAdmin: false })
+    }
   },
 
   onInput(e) {
