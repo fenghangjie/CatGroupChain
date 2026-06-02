@@ -106,9 +106,6 @@ function parseSignups(text) {
     // 第一行带序号的是场地/截止信息，跳过
     if (results.length === 0 && /[场截止]/.test(content)) continue
 
-    // 去掉 +数字（如 苏苏 +1）
-    content = content.replace(/\s*\+\d+\s*$/g, '').trim()
-
     // 去掉时间段
     content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
     content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
@@ -118,6 +115,18 @@ function parseSignups(text) {
 
     if (!content || content === '#') continue
     if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场/.test(content)) continue
+
+    // 展开 +数字（如 苏苏 +1 → 苏苏、苏苏1、苏苏2）
+    const plusMatch = content.match(/^(.+?)\s*\+(\d+)\s*$/)
+    if (plusMatch) {
+      const base = plusMatch[1].trim()
+      const count = parseInt(plusMatch[2])
+      for (let j = 0; j <= count; j++) {
+        const name = j === 0 ? base : base + j
+        if (name) results.push({ wxId: '', nickname: name })
+      }
+      continue
+    }
 
     let wxId = ''
     let nickname = content
