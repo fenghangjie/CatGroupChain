@@ -1,16 +1,24 @@
 <view class="container">
-  <!-- 月份选择 -->
-  <view class="month-picker">
+  <view class="view-switch">
+    <view class="switch-btn {{viewMode==='month'?'switch-active':''}}" bindtap="switchView" data-mode="month">📅 月</view>
+    <view class="switch-btn {{viewMode==='year'?'switch-active':''}}" bindtap="switchView" data-mode="year">📆 年</view>
+  </view>
+
+  <view class="month-picker" wx:if="{{viewMode==='month'}}">
     <view class="month-nav" bindtap="prevMonth">◀</view>
     <view class="month-title">{{year}}年{{month}}月</view>
     <view class="month-nav" bindtap="nextMonth">▶</view>
   </view>
+  <view class="month-picker" wx:if="{{viewMode==='year'}}">
+    <view class="month-nav" bindtap="prevYear">◀</view>
+    <view class="month-title">{{year}}年 年度汇总</view>
+    <view class="month-nav" bindtap="nextYear">▶</view>
+  </view>
 
-  <!-- 统计概览 -->
   <view class="summary-card">
     <view class="summary-item">
       <text class="summary-num">{{totalActivities}}</text>
-      <text class="summary-label">本月活动</text>
+      <text class="summary-label">{{viewMode==='month' ? '本月活动' : '全年活动'}}</text>
     </view>
     <view class="summary-item">
       <text class="summary-num">{{totalPlayers}}</text>
@@ -18,40 +26,17 @@
     </view>
     <view class="summary-item">
       <text class="summary-num">{{totalAttendance}}</text>
-      <text class="summary-label">总人次</text>
+      <text class="summary-label">{{viewMode==='month' ? '总人次' : '全年人次'}}</text>
     </view>
   </view>
 
-  <!-- 考勤矩阵（打卡表） -->
-  <view class="card" wx:if="dates.length > 0 && report.length > 0">
-    <view class="card-title">📋 考勤表</view>
-    <scroll-view class="matrix-scroll" scroll-x>
-      <view class="matrix">
-        <!-- 表头 -->
-        <view class="matrix-row matrix-header">
-          <view class="matrix-cell matrix-name">姓名</view>
-          <view class="matrix-cell matrix-day" wx:for="{{dateLabels}}" wx:key="*this">
-            {{item}}
-          </view>
-          <view class="matrix-cell matrix-total">次数</view>
-        </view>
-        <!-- 数据行 -->
-        <view class="matrix-row" wx:for="{{report}}" wx:key="playerId">
-          <view class="matrix-cell matrix-name">{{item.nickname}}</view>
-          <view class="matrix-cell matrix-day" wx:for="{{item.attendance}}" wx:key="*this">
-            <text class="dot {{item ? 'dot-yes' : 'dot-no'}}">{{item ? '●' : '○'}}</text>
-          </view>
-          <view class="matrix-cell matrix-total">{{item.count}}</view>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
-
-  <!-- 排行榜 -->
-  <view class="card" wx:if="report.length > 0">
-    <view class="card-title">🏆 本月排名</view>
-    <view class="rank-list">
-      <view class="rank-item" wx:for="{{report}}" wx:key="playerId" wx:for-index="i">
+  <view class="card">
+    <view class="card-title">🏆 参与排行榜</view>
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="!loading && report.length === 0" class="empty">暂无数据 🏸</view>
+    
+    <view class="rank-list" wx:if="report.length > 0">
+      <view class="rank-item" wx:for="{{report}}" wx:key="playerId" wx:for-index="i" bindtap="viewPlayer" data-playerid="{{item.playerId}}" data-name="{{item.nickname}}">
         <view class="rank-num rank-{{i < 3 ? ['gold','silver','bronze'][i] : 'normal'}}">
           <text wx:if="{{i < 3}}">{{['🥇','🥈','🥉'][i]}}</text>
           <text wx:else>{{item.rank}}</text>
@@ -65,11 +50,16 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view wx:if="!loading && report.length === 0" class="empty">
-    暂无考勤数据，先去「活动」页录入接龙吧 🏸
+  <view class="card" wx:if="{{viewMode==='year' && yearReport.length>0}}">
+    <view class="card-title">📆 {{year}}年 每月活动</view>
+    <view class="year-grid">
+      <view class="year-month-item" wx:for="{{yearReport}}" wx:key="month">
+        <view class="year-month-name">{{item.monthName}}</view>
+        <view class="year-month-count">{{item.count}} 场</view>
+        <view class="year-month-attendance">{{item.attendance}} 人次</view>
+      </view>
+    </view>
   </view>
 
-  <!-- 加载 -->
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 </view>

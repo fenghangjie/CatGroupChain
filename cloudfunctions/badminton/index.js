@@ -112,7 +112,7 @@ function parseSignups(text) {
         content = content.replace(/(\D)\s+(\d+)$/g, '$1$2').trim()  // 安妮 2 → 安妮2
     content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
 
-    if (!content || content === '#') continue
+    if (!content) continue
     if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场|禁止|谢绝|未按要求|[闭关]/.test(content)) continue
 
     const plusMatch = content.match(/^(.+?)\s*\+(\d+)\s*$/)

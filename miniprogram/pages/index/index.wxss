@@ -114,8 +114,9 @@
   font-size: 28rpx;
   font-weight: 600;
   color: #1aad19;
-  width: 160rpx;
+  width: 180rpx;
   flex-shrink: 0;
+  font-family: monospace;
 }
 
 .record-signups {
@@ -152,3 +153,17 @@
 }
 
 .toast-show { opacity: 1; }
+
+.btn-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-center .btn {
+  flex: 0 1 auto;
+  min-width: 200rpx;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
