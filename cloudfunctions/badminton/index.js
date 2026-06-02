@@ -288,8 +288,9 @@ async function genInviteCode() {
   }
 }
 
-async function redeemInviteCode(event, { code }) {
+async function redeemInviteCode(event, data) {
   try {
+    const code = (data && data.code || '').trim()
     if (!code) return { success: false, errMsg: '请输入邀请码' }
     const wxContext = cloud.getWXContext()
     const openid = wxContext.OPENID
