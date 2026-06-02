@@ -5,16 +5,11 @@ Page({
     activities: [],
     loading: false,
     creating: false,
-    showSignupModal: false,
-    signupActivity: null,
-    signupText: '',
-    submitting: false,
     showToast: false,
     toastMsg: ''
   },
 
   onLoad() {
-    // 默认今天日期
     const today = new Date()
     const ds = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
     this.setData({ newDate: ds })
@@ -33,11 +28,6 @@ Page({
     this.setData({ newTitle: e.detail.value })
   },
 
-  onSignupInput(e) {
-    this.setData({ signupText: e.detail.value })
-  },
-
-  // 发布活动
   async createActivity() {
     const { newDate, newTitle } = this.data
     if (!newDate) {
@@ -66,7 +56,6 @@ Page({
     this.setData({ creating: false })
   },
 
-  // 加载活动列表
   async loadActivities() {
     this.setData({ loading: true })
     try {
@@ -83,61 +72,13 @@ Page({
     this.setData({ loading: false })
   },
 
-  // 显示录入弹窗
-  showSignupInput(e) {
-    const activity = e.currentTarget.dataset.activity
-    this.setData({
-      showSignupModal: true,
-      signupActivity: activity,
-      signupText: ''
+  goSignup(e) {
+    const act = e.currentTarget.dataset.activity
+    wx.navigateTo({
+      url: `/pages/signup/index?id=${act._id}&date=${act.date}&title=${encodeURIComponent(act.title)}`
     })
   },
 
-  // 隐藏录入弹窗
-  hideSignupInput() {
-    this.setData({
-      showSignupModal: false,
-      signupActivity: null,
-      signupText: ''
-    })
-  },
-
-  // 提交接龙数据
-  async submitSignups() {
-    const { signupActivity, signupText } = this.data
-    if (!signupText.trim()) {
-      this.showToast('请粘贴接龙内容')
-      return
-    }
-
-    this.setData({ submitting: true })
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'badminton',
-        data: {
-          type: 'addSignups',
-          data: {
-            activityId: signupActivity._id,
-            signupText: signupText
-          }
-        }
-      })
-
-      if (res.result.success) {
-        const d = res.result.data
-        this.showToast(`✅ 录入成功！共${d.total}人参与`)
-        this.hideSignupInput()
-        this.loadActivities()
-      } else {
-        this.showToast(res.result.errMsg || '录入失败')
-      }
-    } catch (e) {
-      this.showToast('录入失败')
-    }
-    this.setData({ submitting: false })
-  },
-
-  // 删除活动
   deleteActivity(e) {
     const { id, date } = e.currentTarget.dataset
     const that = this

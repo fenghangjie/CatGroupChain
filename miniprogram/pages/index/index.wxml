@@ -36,30 +36,11 @@
           </view>
         </view>
 
-        <!-- 录入接龙按钮 -->
+        <!-- 操作按钮 -->
         <view class="act-actions">
-          <button class="btn btn-small btn-primary" bindtap="showSignupInput" data-activity="{{item}}">📝 录入接龙</button>
+          <button class="btn btn-small btn-primary" bindtap="goSignup" data-activity="{{item}}">📝 录入接龙</button>
           <button class="btn btn-small btn-danger" bindtap="deleteActivity" data-id="{{item._id}}" data-date="{{item.date}}">删除</button>
         </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 录入接龙弹窗 -->
-  <view class="modal-overlay {{showSignupModal ? 'modal-show' : ''}}" bindtap="hideSignupInput" wx:if="{{showSignupModal}}">
-    <view class="modal-content" catchtap="">
-      <view class="modal-title">📝 录入接龙 - {{signupActivity.date}}</view>
-      <textarea
-        class="signup-textarea"
-        placeholder="粘贴群里的接龙内容，支持格式：&#10;&#10;1. 张三(zhangsan)&#10;2. 李四(lisi123)&#10;3. 王五(wangwu)&#10;&#10;或只有昵称：&#10;1. 张三&#10;2. 李四"
-        value="{{signupText}}"
-        bindinput="onSignupInput"
-        maxlength="3000"
-        auto-height
-      />
-      <view class="modal-actions">
-        <button class="btn btn-primary" bindtap="submitSignups" loading="{{submitting}}">✅ 保存</button>
-        <button class="btn btn-outline" bindtap="hideSignupInput">取消</button>
       </view>
     </view>
   </view>

@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/signup/index",
     "pages/report/index",
     "pages/players/index"
   ],

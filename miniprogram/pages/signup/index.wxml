@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="card">
+    <view class="card-title">📝 录入接龙</view>
+    <view class="act-info">
+      <text class="act-label">活动：</text>
+      <text class="act-value">{{activityTitle}}</text>
+    </view>
+    <view class="act-info">
+      <text class="act-label">日期：</text>
+      <text class="act-value">{{activityDate}}</text>
+    </view>
+
+    <textarea
+      class="input-area"
+      placeholder="从微信群复制接龙内容粘贴到这里&#10;&#10;支持格式：&#10;1. 张三(zhangsan)&#10;2. 李四(lisi123)&#10;3. 王五(wangwu)&#10;&#10;或只有昵称：&#10;1. 张三&#10;2. 李四"
+      value="{{signupText}}"
+      bindinput="onInput"
+      maxlength="5000"
+      auto-height
+      focus="{{autoFocus}}"
+    />
+
+    <view class="btn-row">
+      <button class="btn btn-primary" bindtap="submit" loading="{{submitting}}">✅ 保存</button>
+      <button class="btn btn-outline" bindtap="goBack">取消</button>
+    </view>
+  </view>
+
+  <!-- 解析结果预览 -->
+  <view class="card" wx:if="{{parsedNames.length > 0}}">
+    <view class="card-title">🔍 解析结果</view>
+    <view class="result-info">
+      <text>共解析出 <text class="highlight">{{parsedNames.length}}</text> 人</text>
+    </view>
+    <view class="tag-list">
+      <view class="tag" wx:for="{{parsedNames}}" wx:key="*this">{{item}}</view>
+    </view>
+  </view>
+
+  <view class="toast {{showToast ? 'toast-show' : ''}}">{{toastMsg}}</view>
+</view>
