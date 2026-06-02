@@ -24,13 +24,13 @@ exports.main = async (event, context) => {
   }
 }
 
-// 按日期直接保存接龙（无需先发布活动）
+// 按日期直接保存接龙
 async function addSignupsByDate({ date, signupText }) {
   try {
     // 检查该日期是否已有记录
     const exist = await db.collection('activities').where({ date }).get()
     if (exist.data.length > 0) {
-      return { success: false, errMsg: ` ${date} 已有接龙记录，不能重复添加` }
+      return { success: false, errMsg: `${date} 已有接龙记录，不能重复添加` }
     }
 
     // 解析接龙文本
@@ -49,16 +49,14 @@ async function addSignupsByDate({ date, signupText }) {
       ;(p.aliases || []).forEach(a => { playersByNick[a] = p })
     })
 
-    // 匹配或创建 player，构建 signups
+    // 匹配或创建 player
     const signups = []
-
     for (const { wxId, nickname } of parsed) {
       let player = null
       if (wxId && playersByWxId[wxId]) player = playersByWxId[wxId]
       else if (nickname && playersByNick[nickname]) player = playersByNick[nickname]
 
       if (!player) {
-        // 新成员
         const addRes = await db.collection('players').add({
           data: {
             wxId: wxId || '',
@@ -69,7 +67,6 @@ async function addSignupsByDate({ date, signupText }) {
         })
         signups.push({ wxId, nickname, playerId: addRes._id })
       } else {
-        // 更新别名和昵称
         const updates = {}
         if (nickname && player.nickname !== nickname) {
           const aliases = player.aliases || []
@@ -86,20 +83,16 @@ async function addSignupsByDate({ date, signupText }) {
     }
 
     // 保存活动记录
-    const title = `${date} 羽毛球`
     await db.collection('activities').add({
       data: {
         date,
-        title,
+        title: `${date} 羽毛球`,
         signups,
         createdAt: db.serverDate()
       }
     })
 
-    return {
-      success: true,
-      data: { total: signups.length, participants: signups }
-    }
+    return { success: true, data: { total: signups.length, participants: signups } }
   } catch (e) {
     return { success: false, errMsg: e.message }
   }
@@ -109,29 +102,48 @@ async function addSignupsByDate({ date, signupText }) {
 function parseSignups(text) {
   const lines = text.split('\n').filter(l => l.trim())
   const results = []
+  let foundSignup = false
 
-  for (const line of lines) {
-    let content = line.trim().replace(/^\s*\d+[\.、\)\s]\s*/, '').trim()
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+
+    // 找到"接龙"行
+    if (/接龙/.test(line)) {
+      foundSignup = true
+      continue
+    }
+
+    // 跳过非数字序号行（日期行等）
+    const numbered = line.match(/^\s*\d+[\.、\)\s]\s*(.+)/)
+    if (!numbered) continue
+
+    let content = numbered[1].trim()
     if (!content) continue
-    if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙/.test(content)) continue
+
+    // 第一行带序号的是场地信息（如 "1号场 8-10"），跳过
+    if (results.length === 0 && /[场号]/.test(content)) {
+      continue
+    }
+
+    // 过滤非人名行
+    if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场/.test(content)) continue
 
     // 去掉时间段
     content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
     content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
     content = content.replace(/\s*\d{1,2}\s*[点时]\s*$/g, '').trim()
+    if (!content) continue
 
+    // 提取微信号和昵称
     let wxId = ''
     let nickname = content
 
-    // 张三(zhangsan)
     const m1 = content.match(/^(.+?)[（\(](\w+)[）\)]$/)
     if (m1) { nickname = m1[1].trim(); wxId = m1[2].trim() }
 
-    // 张三 zhangsan
     const m2 = content.match(/^(.+?)\s+(\w+)$/)
     if (m2 && !wxId) { nickname = m2[1].trim(); wxId = m2[2].trim() }
 
-    // 微信号：zhangsan
     const m3 = content.match(/微信号[：:]\s*(\w+)/)
     if (m3 && !wxId) { wxId = m3[1].trim(); nickname = content.replace(/微信号[：:]\s*\w+/, '').trim() }
 
@@ -184,7 +196,6 @@ async function getActivities({ year, month } = {}) {
   }
 }
 
-// 月度考勤报告（兼容前端，但前端目前直接调用 getActivities 自己算）
 async function getMonthlyReport({ year, month } = {}) {
   return await getActivities({ year, month })
 }

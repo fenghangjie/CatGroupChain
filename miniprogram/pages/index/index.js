@@ -2,6 +2,7 @@ Page({
   data: {
     signupDate: '',
     signupText: '',
+    parsedDate: '',
     parsedNames: [],
     records: [],
     loading: false,
@@ -11,9 +12,6 @@ Page({
   },
 
   onLoad() {
-    const today = new Date()
-    const ds = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
-    this.setData({ signupDate: ds })
     this.loadRecords()
   },
 
@@ -21,62 +19,106 @@ Page({
     this.loadRecords()
   },
 
-  onDateChange(e) {
-    this.setData({ signupDate: e.detail.value })
-  },
-
   onInput(e) {
     const text = e.detail.value
     this.setData({ signupText: text })
-    const names = this.parseNames(text)
-    this.setData({ parsedNames: names })
+    const { date, names } = this.parseText(text)
+    this.setData({ parsedDate: date, parsedNames: names })
   },
 
   clearInput() {
-    this.setData({ signupText: '', parsedNames: [] })
+    this.setData({ signupText: '', parsedDate: '', parsedNames: [] })
   },
 
-  // 解析接龙文本（去序号、去时间段、提取微信号）
-  parseNames(text) {
+  // 解析接龙文本：提取日期、跳过场地行、提取参与人
+  parseText(text) {
     const lines = text.split('\n').filter(l => l.trim())
-    const results = []
+    let date = ''
+    let names = []
+    let foundSignup = false // 是否找到"接龙"行
 
-    for (const line of lines) {
-      let content = line.trim().replace(/^\s*\d+[\.、\)\s]\s*/, '').trim()
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+
+      // 找到包含"接龙"的行，下一行就是日期
+      if (/接龙/.test(line)) {
+        foundSignup = true
+        // 尝试从本行提取日期（如 "6月2日 羽毛球接龙"）
+        const dateMatch = line.match(/(\d{1,2})月(\d{1,2})日/)
+        if (dateMatch) {
+          const now = new Date()
+          const year = now.getFullYear()
+          date = `${year}-${String(dateMatch[1]).padStart(2, '0')}-${String(dateMatch[2]).padStart(2, '0')}`
+        }
+        continue
+      }
+
+      // 如果上一步没从"接龙"行提取到日期，尝试从下一行提取
+      if (foundSignup && !date && /月/.test(line)) {
+        const dateMatch = line.match(/(\d{1,2})月(\d{1,2})日/)
+        if (dateMatch) {
+          const now = new Date()
+          const year = now.getFullYear()
+          date = `${year}-${String(dateMatch[1]).padStart(2, '0')}-${String(dateMatch[2]).padStart(2, '0')}`
+        } else {
+          // 可能日期是单独一行，如 "6月2日"
+          const m = line.match(/^(\d{1,2})月(\d{1,2})日$/)
+          if (m) {
+            const now = new Date()
+            date = `${now.getFullYear()}-${String(m[1]).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`
+          }
+          // 已经过了日期行，后面继续处理人员
+        }
+        continue
+      }
+
+      // 数字序号开头的行
+      const numbered = line.match(/^\s*\d+[\.、\)\s]\s*(.+)/)
+      if (!numbered) continue
+
+      let content = numbered[1].trim()
       if (!content) continue
-      if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙/.test(content)) continue
+
+      // 第一行序号是场地信息（如 "1. 1号场 8-10"），跳过
+      if (names.length === 0 && /[场号]/.test(content)) {
+        continue
+      }
+
+      // 过滤非人名行
+      if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场/.test(content)) continue
 
       // 去掉时间段
       content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
       content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
       content = content.replace(/\s*\d{1,2}\s*[点时]\s*$/g, '').trim()
+      if (!content) continue
 
       // 提取微信号和昵称
       let wxId = ''
       let nickname = content
 
-      const match1 = content.match(/^(.+?)[（\(](\w+)[）\)]$/)
-      if (match1) { nickname = match1[1].trim(); wxId = match1[2].trim() }
+      const m1 = content.match(/^(.+?)[（\(](\w+)[）\)]$/)
+      if (m1) { nickname = m1[1].trim(); wxId = m1[2].trim() }
 
-      const match2 = content.match(/^(.+?)\s+(\w+)$/)
-      if (match2 && !wxId) { nickname = match2[1].trim(); wxId = match2[2].trim() }
+      const m2 = content.match(/^(.+?)\s+(\w+)$/)
+      if (m2 && !wxId) { nickname = m2[1].trim(); wxId = m2[2].trim() }
 
-      const match3 = content.match(/微信号[：:]\s*(\w+)/)
-      if (match3 && !wxId) { wxId = match3[1].trim(); nickname = content.replace(/微信号[：:]\s*\w+/, '').trim() }
+      const m3 = content.match(/微信号[：:]\s*(\w+)/)
+      if (m3 && !wxId) { wxId = m3[1].trim(); nickname = content.replace(/微信号[：:]\s*\w+/, '').trim() }
 
       const displayName = nickname || wxId || content
       if (displayName && displayName.length <= 10) {
-        results.push(displayName)
+        names.push(displayName)
       }
     }
 
-    return results
+    return { date, names }
   },
 
   async submit() {
-    const { signupDate, signupText } = this.data
-    if (!signupDate) { this.showToast('请选择日期'); return }
-    if (!signupText.trim()) { this.showToast('请粘贴接龙内容'); return }
+    const { parsedDate, parsedNames, signupText } = this.data
+    if (!parsedDate) { this.showToast('未能识别出日期，请确保接龙中包含日期'); return }
+    if (parsedNames.length === 0) { this.showToast('未能识别出参与人员'); return }
 
     this.setData({ submitting: true })
     try {
@@ -84,13 +126,13 @@ Page({
         name: 'badminton',
         data: {
           type: 'addSignupsByDate',
-          data: { date: signupDate, signupText }
+          data: { date: parsedDate, signupText }
         }
       })
 
       if (res.result.success) {
         this.showToast(`✅ 保存成功！${res.result.data.total}人参与`)
-        this.setData({ signupText: '', parsedNames: [] })
+        this.setData({ signupText: '', parsedDate: '', parsedNames: [] })
         this.loadRecords()
       } else {
         this.showToast(res.result.errMsg || '保存失败')

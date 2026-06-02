@@ -1,16 +1,10 @@
 <view class="container">
   <!-- 录入接龙 -->
   <view class="card">
-    <view class="card-title">📝 录入接龙</view>
-    <view class="form-row">
-      <text class="form-label">日期</text>
-      <picker mode="date" value="{{signupDate}}" bindchange="onDateChange">
-        <view class="picker">{{signupDate || '点击选择日期'}}</view>
-      </picker>
-    </view>
+    <view class="card-title">📝 粘贴接龙内容</view>
     <textarea
       class="input-area"
-      placeholder="从微信群复制接龙内容粘贴到这里&#10;&#10;支持格式：&#10;1. 张三(zhangsan)&#10;2. 李四(lisi123)&#10;3. 王五&#10;&#10;自动去掉时间段如 8-10、8～10、8点 等"
+      placeholder="从微信群复制接龙内容粘贴到这里&#10;&#10;例如：&#10;6月2日 周五羽毛球接龙&#10;1. 1号场 8-10&#10;2. 张三(zhangsan)&#10;3. 李四(lisi123)&#10;4. 王五&#10;&#10;自动识别日期、跳过场地行、去掉时间段"
       value="{{signupText}}"
       bindinput="onInput"
       maxlength="5000"
@@ -23,10 +17,15 @@
   </view>
 
   <!-- 解析结果预览 -->
-  <view class="card" wx:if="{{parsedNames.length > 0}}">
+  <view class="card" wx:if="{{parsedNames.length > 0 || parsedDate}}">
     <view class="card-title">🔍 解析结果</view>
-    <view class="result-info">
-      <text>共 <text class="highlight">{{parsedNames.length}}</text> 人参与</text>
+    <view class="result-row" wx:if="{{parsedDate}}">
+      <text class="result-label">日期：</text>
+      <text class="result-value">{{parsedDate}}</text>
+    </view>
+    <view class="result-row">
+      <text class="result-label">参与：</text>
+      <text class="result-value">{{parsedNames.length}} 人</text>
     </view>
     <view class="tag-list">
       <view class="tag" wx:for="{{parsedNames}}" wx:key="*this">{{item}}</view>
