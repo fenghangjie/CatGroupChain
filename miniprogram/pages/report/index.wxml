@@ -30,8 +30,8 @@
         <!-- 表头 -->
         <view class="matrix-row matrix-header">
           <view class="matrix-cell matrix-name">姓名</view>
-          <view class="matrix-cell matrix-day" wx:for="{{dates}}" wx:key="*this">
-            {{item.slice(8,10)}}日
+          <view class="matrix-cell matrix-day" wx:for="{{dateLabels}}" wx:key="*this">
+            {{item}}
           </view>
           <view class="matrix-cell matrix-total">次数</view>
         </view>

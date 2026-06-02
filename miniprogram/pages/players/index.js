@@ -20,7 +20,12 @@ Page({
         data: { type: 'getPlayers' }
       })
       if (res.result.success) {
-        this.setData({ players: res.result.data })
+        const players = (res.result.data || []).map(p => ({
+          ...p,
+          avatarChar: (p.nickname || '?').slice(0, 1),
+          aliasesText: p.aliases && p.aliases.length > 1 ? p.aliases.join('、') : ''
+        }))
+        this.setData({ players })
       }
     } catch (e) {
       console.error(e)

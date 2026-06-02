@@ -3,6 +3,7 @@ Page({
     year: 0,
     month: 0,
     dates: [],
+    dateLabels: [],
     report: [],
     totalActivities: 0,
     totalPlayers: 0,
@@ -59,7 +60,6 @@ Page({
       }
 
       const activities = res.result.data
-      // 前端做统计
       const result = this.computeReport(activities, year, month)
 
       this.setData({
@@ -73,7 +73,6 @@ Page({
   },
 
   computeReport(activities, year, month) {
-    // 统计每个人
     const attendanceMap = {}
     for (const act of activities) {
       const signups = act.signups || []
@@ -89,7 +88,6 @@ Page({
       }
     }
 
-    // 转数组、排序
     const report = Object.entries(attendanceMap).map(([playerId, info]) => ({
       playerId,
       wxId: info.wxId,
@@ -100,8 +98,10 @@ Page({
     report.sort((a, b) => b.count - a.count)
     report.forEach((item, i) => { item.rank = i + 1 })
 
-    // 考勤矩阵
     const allDates = [...new Set(activities.map(a => a.date))].sort()
+    // 预处理日期标签（只显示日）
+    const dateLabels = allDates.map(d => d.slice(8, 10) + '日')
+
     const matrix = report.map(person => {
       const daySet = new Set(person.days)
       return {
@@ -115,6 +115,7 @@ Page({
 
     return {
       dates: allDates,
+      dateLabels,
       report: matrix,
       totalActivities: activities.length,
       totalPlayers: report.length,

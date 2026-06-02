@@ -8,12 +8,12 @@
     
     <view class="player-list">
       <view class="player-item" wx:for="{{players}}" wx:key="_id">
-        <view class="player-avatar">{{(item.nickname || '?').slice(0,1)}}</view>
+        <view class="player-avatar">{{item.avatarChar}}</view>
         <view class="player-info">
           <view class="player-nickname">{{item.nickname || '未知'}}</view>
           <view class="player-wxid" wx:if="{{item.wxId}}">微信号：{{item.wxId}}</view>
-          <view class="player-aliases" wx:if="{{item.aliases && item.aliases.length > 1}}">
-            曾用名：{{item.aliases.join('、')}}
+          <view class="player-aliases" wx:if="{{item.aliasesText}}">
+            曾用名：{{item.aliasesText}}
           </view>
         </view>
       </view>
