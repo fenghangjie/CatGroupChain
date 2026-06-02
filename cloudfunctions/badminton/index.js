@@ -24,22 +24,18 @@ exports.main = async (event, context) => {
   }
 }
 
-// 按日期直接保存接龙
 async function addSignupsByDate({ date, signupText }) {
   try {
-    // 检查该日期是否已有记录
     const exist = await db.collection('activities').where({ date }).get()
     if (exist.data.length > 0) {
       return { success: false, errMsg: `${date} 已有接龙记录，不能重复添加` }
     }
 
-    // 解析接龙文本
     const parsed = parseSignups(signupText)
     if (parsed.length === 0) {
       return { success: false, errMsg: '未能解析出参与人员' }
     }
 
-    // 获取已有 players 做匹配
     const playersRes = await db.collection('players').get()
     const playersByWxId = {}
     const playersByNick = {}
@@ -49,7 +45,6 @@ async function addSignupsByDate({ date, signupText }) {
       ;(p.aliases || []).forEach(a => { playersByNick[a] = p })
     })
 
-    // 匹配或创建 player
     const signups = []
     for (const { wxId, nickname } of parsed) {
       let player = null
@@ -58,12 +53,7 @@ async function addSignupsByDate({ date, signupText }) {
 
       if (!player) {
         const addRes = await db.collection('players').add({
-          data: {
-            wxId: wxId || '',
-            nickname: nickname || '',
-            aliases: nickname ? [nickname] : [],
-            createdAt: db.serverDate()
-          }
+          data: { wxId: wxId || '', nickname: nickname || '', aliases: nickname ? [nickname] : [], createdAt: db.serverDate() }
         })
         signups.push({ wxId, nickname, playerId: addRes._id })
       } else {
@@ -82,14 +72,8 @@ async function addSignupsByDate({ date, signupText }) {
       }
     }
 
-    // 保存活动记录
     await db.collection('activities').add({
-      data: {
-        date,
-        title: `${date} 羽毛球`,
-        signups,
-        createdAt: db.serverDate()
-      }
+      data: { date, title: `${date} 羽毛球`, signups, createdAt: db.serverDate() }
     })
 
     return { success: true, data: { total: signups.length, participants: signups } }
@@ -98,7 +82,6 @@ async function addSignupsByDate({ date, signupText }) {
   }
 }
 
-// 解析接龙文本
 function parseSignups(text) {
   const lines = text.split('\n').filter(l => l.trim())
   const results = []
@@ -107,34 +90,35 @@ function parseSignups(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim()
 
-    // 找到"接龙"行
     if (/接龙/.test(line)) {
       foundSignup = true
       continue
     }
 
-    // 跳过非数字序号行（日期行等）
+    if (!foundSignup) continue
+
     const numbered = line.match(/^\s*\d+[\.、\)\s]\s*(.+)/)
     if (!numbered) continue
 
     let content = numbered[1].trim()
     if (!content) continue
 
-    // 第一行带序号的是场地信息（如 "1号场 8-10"），跳过
-    if (results.length === 0 && /[场号]/.test(content)) {
-      continue
-    }
+    // 第一行带序号的是场地/截止信息，跳过
+    if (results.length === 0 && /[场截止]/.test(content)) continue
 
-    // 过滤非人名行
-    if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场/.test(content)) continue
+    // 去掉 +数字（如 苏苏 +1）
+    content = content.replace(/\s*\+\d+\s*$/g, '').trim()
 
     // 去掉时间段
     content = content.replace(/\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*$/g, '').trim()
     content = content.replace(/[\(（]\s*\d{1,2}[:：]?\d{0,2}\s*[~～\-—]\s*\d{1,2}[:：]?\d{0,2}\s*[点时]*\s*[\)）]/g, '').trim()
-    content = content.replace(/\s*\d{1,2}\s*[点时]\s*$/g, '').trim()
-    if (!content) continue
 
-    // 提取微信号和昵称
+    // 去掉末尾单独的数字（如 超人不会飞 1、安妮 2）
+    content = content.replace(/\s+\d+$/g, '').trim()
+
+    if (!content || content === '#') continue
+    if (/接龙|统计|记录|截止|报名|替补|候补|总数|请接龙|场地|号场/.test(content)) continue
+
     let wxId = ''
     let nickname = content
 
@@ -155,22 +139,16 @@ function parseSignups(text) {
   return results
 }
 
-// 获取所有接龙记录
 async function getRecords({ page = 0, pageSize = 50 } = {}) {
   try {
     const total = (await db.collection('activities').count()).total
-    const res = await db.collection('activities')
-      .orderBy('date', 'desc')
-      .skip(page * pageSize)
-      .limit(pageSize)
-      .get()
+    const res = await db.collection('activities').orderBy('date', 'desc').skip(page * pageSize).limit(pageSize).get()
     return { success: true, data: res.data, total }
   } catch (e) {
     return { success: false, errMsg: e.message }
   }
 }
 
-// 删除一条接龙记录
 async function deleteRecord({ _id }) {
   try {
     await db.collection('activities').doc(_id).remove()
@@ -180,7 +158,6 @@ async function deleteRecord({ _id }) {
   }
 }
 
-// 获取活动（按年月筛选，供考勤页用）
 async function getActivities({ year, month } = {}) {
   try {
     let query = {}
@@ -200,7 +177,6 @@ async function getMonthlyReport({ year, month } = {}) {
   return await getActivities({ year, month })
 }
 
-// 获取所有成员
 async function getPlayers() {
   try {
     const res = await db.collection('players').orderBy('createdAt', 'asc').get()
