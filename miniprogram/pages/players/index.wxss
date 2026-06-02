@@ -113,3 +113,22 @@
 }
 
 .toast-show { opacity: 1; }
+.collapse-toggle {
+  text-align: center;
+  padding: 20rpx;
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  color: #1aad19;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.collapse-toggle:active {
+  opacity: 0.6;
+}
+
+.player-list-collapsed .player-item:nth-child(n+11) {
+  display: none;
+}

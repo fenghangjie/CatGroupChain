@@ -6,7 +6,7 @@
     <view wx:if="{{loading}}" class="loading">加载中...</view>
     <view wx:if="!loading && players.length === 0" class="empty">暂无成员，去「接龙」页录入吧 🏸</view>
     
-    <view class="player-list">
+    <view class="player-list {{collapsed ? 'player-list-collapsed' : ''}}">
       <view class="player-item" wx:for="{{players}}" wx:key="_id">
         <view class="player-avatar">{{item.avatarChar}}</view>
         <view class="player-info">
@@ -16,6 +16,8 @@
         </view>
       </view>
     </view>
+
+    <view wx:if="{{players.length > 10}}" class="collapse-toggle" bindtap="toggleCollapse">{{collapsed ? '展开全部 ▼' : '收起 ▲'}}</view>
   </view>
 
   <view class="footer-actions">

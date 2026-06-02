@@ -1,5 +1,6 @@
 Page({
   data: {
+    collapsed: true,
     players: [],
     loading: false,
     showToast: false,
@@ -19,7 +20,8 @@ Page({
     try {
       const res = await wx.cloud.callFunction({
         name: 'badminton',
-        data: { type: 'getPlayers' }
+        data: {
+    collapsed: true, type: 'getPlayers' }
       })
       if (res.result.success) {
         const players = (res.result.data || []).map(p => ({
@@ -44,7 +46,8 @@ Page({
           try {
             const r = await wx.cloud.callFunction({
               name: 'badminton',
-              data: { type: 'clearAll' }
+              data: {
+    collapsed: true, type: 'clearAll' }
             })
             wx.hideLoading()
             if (r.result.success) {
@@ -60,6 +63,10 @@ Page({
         }
       }
     })
+  },
+
+  toggleCollapse() {
+    this.setData({ collapsed: !this.data.collapsed })
   },
 
   showToast(msg) {
